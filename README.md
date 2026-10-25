@@ -264,3 +264,7 @@ O campo processadoEm é retirado apenas do JSON didático exportado para evitar 
 Este repositório apresenta a camada Python/pandas do Performance do Suporte como um case técnico executável. A documentação liga cada trecho ao commit de origem; os scripts e a amostra sintética permitem revisar o tratamento dos dados de forma independente.
 
 O projeto completo, com API, banco e dashboard, permanece em [support-performance-analytics](https://github.com/Pedroferreira32/support-performance-analytics).
+
+## Evolução em preparação: BigQuery
+
+O [módulo BigQuery](bigquery/README.md) prepara a mesma amostra para GoogleSQL, com tabelas, particionamento, indicadores e comparação com a referência pandas. A execução no Google Cloud e a coleta dos IDs dos jobs ainda estão pendentes. Consulte o guia do módulo para acompanhar o estado da comprovação.
