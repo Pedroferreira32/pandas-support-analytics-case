@@ -1,0 +1,9 @@
+﻿linhaOrigem;protocolo;cliente;contato;revenda;atendente;departamento;status;inicio;fim;avaliacao;duracaoHoras;tmaMinutos;suspeitoAutomatico;motivoCodigo;motivo
+12;E001;Cliente Fictício 10;;Canal Exemplo A;;Financeiro;;2026-08-10T09:00:00;2026-08-10T10:00:00;5.0;1.0;60.0;False;FORA_SUPORTE;Departamento diferente de Suporte
+13;E002;Cliente Fictício 11;;Canal Exemplo A;;Suporte;;2026-08-10T09:00:00;2026-08-10T10:00:00;5.0;1.0;60.0;False;SEM_ATENDENTE;Atendente não informado
+14;E003;Cliente Fictício 12;;Canal Exemplo A;Diego Demo;Suporte;;2026-08-10T09:00:00;2026-08-10T10:00:00;5.0;1.0;60.0;False;ATENDENTE_EXCLUIDO;Atendente fora da campanha
+15;E004;Cliente Fictício 13;;Canal Exemplo B;Ana Demo;Suporte;;;2026-08-10T10:00:00;5.0;0.0;0.0;False;DATA_INVALIDA;Data de início inválida ou pendente
+16;E005;Cliente Fictício 14;;Canal Exemplo B;Ana Demo;Suporte;;2026-08-10T09:00:00;;5.0;0.0;0.0;False;SEM_FINALIZACAO;Data final não informada
+17;E006;Cliente Fictício 15;;Canal Exemplo B;Bruno Demo;Suporte;;2026-08-10T10:00:00;2026-08-10T09:00:00;5.0;-1.0;-60.0;False;DURACAO_NEGATIVA;Data final anterior ao início
+18;E007;Cliente Fictício 16;;Canal Exemplo A;Bruno Demo;Suporte;;2026-08-10T09:00:00;2026-08-10T19:00:00;5.0;10.0;600.0;False;ACIMA_H;Duração acima do limite configurado
+19;E008;Cliente Fictício 17;;Canal Exemplo B;Carla Demo;Suporte;;2026-08-09T09:00:00;2026-08-09T10:00:00;5.0;1.0;60.0;False;PERIODO;Fora do expediente ou em domingo

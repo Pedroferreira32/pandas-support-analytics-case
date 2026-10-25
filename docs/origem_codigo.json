@@ -1,0 +1,65 @@
+{
+  "repository": "https://github.com/Pedroferreira32/support-performance-analytics",
+  "branch_at_export": "main",
+  "commit": "1c06e62c70b9e2d71908381728f9875a5b7c4dc3",
+  "export_date": "2026-10-25",
+  "source_files": [
+    {
+      "path": "backend/__init__.py",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/__init__.py",
+      "git_blob_sha": "a005cd8411c6f1ab8f6a9421c852b6909e118aa3",
+      "sha256": "88c35aa8b54669ff83570252d9fd7535e21375100ad647c2c89b475a401b354b",
+      "bytes": 62
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/__init__.py",
+      "git_blob_sha": "c7b03cc49acd408a8c8bcdafa719010a8f5be247",
+      "sha256": "3f1f035d996e5429cc8a8cdb8c4e7f3a346aa4ec9e6b262eef181f1344a55a75",
+      "bytes": 59
+    },
+    {
+      "path": "backend/app/pipeline/__init__.py",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/__init__.py",
+      "git_blob_sha": "09517f770646dc895a4dadb6a36b7fcf6b226345",
+      "sha256": "4f8d2ab678c141c8cb64a8a25110e189ff2be452893d68f2c746b933e6b44a61",
+      "bytes": 268
+    },
+    {
+      "path": "backend/app/pipeline/engine.py",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py",
+      "git_blob_sha": "532cc169e7ba6a44f5da0609f42b7d630cfb49b0",
+      "sha256": "7e007f4ed10117767f0bb75fff4fcb036290768302d40b813fbbbf1d74555960",
+      "bytes": 23833
+    },
+    {
+      "path": "backend/app/pipeline/rules.py",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/rules.py",
+      "git_blob_sha": "82c2da5fef5f7926f21babc984d3195aa1bc29fa",
+      "sha256": "8342ff6677b8c8ffd6599bf5648366e01717b1c488091bc44823aa51b13ff171",
+      "bytes": 2839
+    },
+    {
+      "path": "backend/tests/test_pipeline.py",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/tests/test_pipeline.py",
+      "git_blob_sha": "c4275a1b4635ac3ad3e4f23c57a8d59cbe10a9ab",
+      "sha256": "5056444faa3e8118e6129dbcd6c312673c083589aaf3c62307cccda05607445e",
+      "bytes": 4197
+    },
+    {
+      "path": "backend/requirements.txt",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/requirements.txt",
+      "git_blob_sha": "586e524a3d02eeae697018bd6f4ed97a1918d536",
+      "sha256": "3c9e3aa5aa9f1e54b946ccf95becad67282916b43e0c32395b0d7d27a99c63ac",
+      "bytes": 134
+    },
+    {
+      "path": "backend/requirements-dev.txt",
+      "origin": "https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/requirements-dev.txt",
+      "git_blob_sha": "8a50fa3269ec3f395cf247815033e9858824b056",
+      "sha256": "cfa72fcbb3608eaf7db44ae69c34dcbebe714d79a40018d998a570828146604b",
+      "bytes": 49
+    }
+  ],
+  "note": "Os oito arquivos de origem são cópias integrais. Scripts, amostra, documentação e resultados são materiais novos para a demonstração."
+}
