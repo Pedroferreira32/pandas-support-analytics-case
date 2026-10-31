@@ -1,0 +1,4 @@
+﻿atendente;atendimentos;horas_total;tma_medio_min;tma_mediano_min;tma_p90_min;avaliacao_media;avaliacoes;cobertura_avaliacao;automaticos;pontos_quantidade;pontos_tempo;pontos_tma;pontos_avaliacao;nota_final;posicao;elegivel;premiado
+Carla Demo;3;1.5;30;30;38;4.666666667;3;100;0;15;2.222222222;30;39.29824561;86.52046784;1;True;True
+Ana Demo;4;6.75;101.25;52.5;207;4.75;4;100;0;20;10;8.888888889;40;78.88888889;2;False;False
+Bruno Demo;3;2.25;45;45;57;4.5;2;66.66666667;0;15;3.333333333;20;37.89473684;76.22807018;3;False;False
