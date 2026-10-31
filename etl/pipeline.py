@@ -48,7 +48,9 @@ def run_pipeline(source: Path | str, database: Path | str, config: PipelineConfi
         "configuracao": config.to_dict(), "total_extraido": len(extracted.frame),
     }
     reconciliation = load(database, checked.valid, checked.excluded, ranking, metadata, stages)
-    logger.info("load | linhas persistidas=%s | reconciliado=%s", stages[-1]["saida"], bool(reconciliation["reconciliado"]))
+    logger.info("load | validos=%s excluidos=%s ranking=%s | reconciliado=%s",
+                reconciliation["validos"], reconciliation["excluidos"], reconciliation["atendentes"],
+                bool(reconciliation["reconciliado"]))
     manifest = {
         **metadata, "etapas": stages, "regras": checked.rule_counts, "reconciliacao_sql": reconciliation,
         "avaliacoes_validas": int(checked.valid["avaliacao"].count()),

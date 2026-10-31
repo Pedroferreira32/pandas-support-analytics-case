@@ -1,38 +1,43 @@
 # Pandas Support Analytics
 
-**Pipeline ETL local com Python, pandas e SQLite para transformar atendimentos em indicadores auditáveis.**
+**Implementei uma pipeline ETL modular em Python/pandas, com carga transacional em SQLite, reconciliação SQL e quarentena de duplicados.**
 
-O case aplica regras de qualidade, registra cada exclusão, calcula o desempenho por atendente e carrega os resultados em banco dentro de uma transação. O reprocessamento substitui somente a competência solicitada. Todos os dados demonstrativos são fictícios.
+A pipeline principal está em **`etl/`** e é executada com `python -m etl`. Mantive `backend/` como referência histórica para conferir a origem das regras e comparar os resultados da implementação nova.
 
-Na amostra de referência: **18 entradas → 10 válidos + 8 excluídos**, com **9 avaliações válidas e 90% de cobertura**. Na amostra de qualidade: **22 entradas → 10 válidos + 12 excluídos**, exercitando também duplicados, protocolo ausente e outra competência.
+Ao analisar dados de atendimento, percebi que datas inválidas, avaliações fora da escala e registros de outros departamentos poderiam alterar os indicadores. Por isso, organizei o tratamento em etapas e preservei a explicação de cada exclusão.
 
-## O problema e a decisão
+Para demonstrar o comportamento, usei duas amostras inteiramente fictícias:
 
-Uma exportação pode conter outros departamentos, atendentes ausentes, datas inválidas e avaliações fora da escala. O objetivo é decidir **quais atendimentos podem entrar nos indicadores e explicar o tratamento de cada registro**.
+- **Referência:** 18 entradas, 10 atendimentos válidos, 8 excluídos, 9 avaliações válidas e 90% de cobertura.
+- **Qualidade:** 22 entradas, 10 atendimentos válidos e 12 excluídos, incluindo protocolos duplicados, protocolo ausente e registros de outra competência.
 
-Exemplo: uma nota 8 em uma escala de 0 a 5 fica fora da média. O atendimento continua válido quando passa nas demais regras; a ausência da avaliação aparece na cobertura de respostas.
+## O problema que procurei resolver
 
-## Executar em poucos minutos
+Eu precisava definir quais atendimentos poderiam participar dos indicadores e tornar essa decisão verificável. Separei a validade do atendimento da validade da avaliação.
 
-Requisito: **Python 3.12**. Na raiz do repositório:
+Na amostra, incluí uma nota 8 em uma escala de 0 a 5. Desconsiderei essa nota no cálculo da média e na contagem de respostas, mas mantive o atendimento quando ele passou nas demais regras. Assim, a cobertura de avaliações registra a ausência sem eliminar um atendimento válido.
+
+## Como reproduzir minha execução
+
+Usei **Python 3.12** e fixei as versões das dependências principais em `requirements.txt`. Na raiz do repositório, criei o ambiente virtual:
 
 ```bash
 python -m venv .venv
 ```
 
-Windows PowerShell:
+Para ativá-lo no Windows PowerShell, o comando é:
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Linux/macOS:
+No Linux/macOS, o comando equivalente é:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Instale as dependências e execute:
+Depois, instalei as dependências, executei a pipeline e consultei a reconciliação no banco:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -40,19 +45,18 @@ python -m etl
 python -m etl --reconcile-only
 ```
 
-Saída da primeira execução:
+Na amostra de referência, obtive estas contagens:
 
 ```text
 extract   entrada=18  saida=18  excluidos=0  (atendimentos)
 validate  entrada=18  saida=10  excluidos=8  (atendimentos)
 transform entrada=10  saida=3               (atendimentos -> atendentes)
-load      linhas persistidas=21            (10 válidos + 8 excluídos + 3 rankings)
-reconciliado=1
+load      validos=10  excluidos=8  ranking=3  reconciliado=True
 ```
 
-O banco fica em `resultados/etl/suporte.sqlite`. CSVs, manifesto com hash da entrada e [resumo da execução](resultados/etl/RESUMO.md) ficam na mesma pasta. O banco é gerado localmente e não é versionado.
+Gravei os resultados em `resultados/etl/suporte.sqlite` e exportei CSVs, manifesto com hash da entrada e [resumo da execução](resultados/etl/RESUMO.md). Mantive o banco fora do versionamento; ele é recriado pela execução local.
 
-## Etapas e evidências
+## Como organizei a pipeline
 
 ```mermaid
 flowchart TD
@@ -67,52 +71,62 @@ flowchart TD
     G --> H["Reconciliação SQL antes do commit"]
 ```
 
-| Competência demonstrada | Onde conferir |
+| O que implementei | Onde conferir |
 |---|---|
 | Contrato de entrada, preservação de identificadores e SHA-256 | [extract.py](etl/extract.py) |
 | Uma função por regra, máscaras booleanas e auditoria | [validate.py](etl/validate.py) |
-| `groupby().agg()`, quantis e pontuação vetorizada | [transform.py](etl/transform.py) |
+| Agregações nomeadas com `groupby().agg()`, quantis e pontuação vetorizada | [transform.py](etl/transform.py) |
 | Carga parametrizada, rollback e substituição mensal | [load.py](etl/load.py) |
-| Contagens e execução das etapas | [pipeline.py](etl/pipeline.py) |
+| Orquestração e contagens por etapa | [pipeline.py](etl/pipeline.py) |
 | Reconciliação diretamente no banco | [reconciliar.sql](sql/reconciliar.sql) |
 | Testes de negócio, equivalência, reprocessamento e falhas | [test_etl.py](tests/test_etl.py) |
 
-### Regras de qualidade
+## Decisões que tomei no tratamento
 
-- Cabeçalhos ausentes, extras ou duplicados e linhas com quantidade incorreta de campos bloqueiam o arquivo antes da carga.
-- Cada atendimento recebe um único motivo principal, conforme a prioridade documentada.
-- Protocolos repetidos, após remoção de espaços externos e comparação sem distinção de maiúsculas, ficam **todos em quarentena na mesma competência inicial**. Nenhuma cópia é escolhida arbitrariamente.
-- Protocolo em branco e registros de outra competência são auditados como exclusões, sem desaparecimento silencioso de linhas.
-- A competência vem do início: um atendimento encerrado no mês seguinte pode permanecer no mês inicial.
-- A avaliação inválida fica ausente na média e na contagem de respostas; não elimina automaticamente o atendimento.
+- Bloqueei arquivos com cabeçalhos ausentes, extras ou duplicados e com quantidade incorreta de campos, antes da carga.
+- Defini uma prioridade de regras para atribuir um único motivo principal por exclusão. Registrei também quantas linhas cada regra detectou.
+- Coloquei **todas as cópias de um protocolo repetido na mesma competência inicial em quarentena**, após remover espaços externos e comparar sem distinção de maiúsculas. Preferi preservar a ambiguidade para auditoria a escolher arbitrariamente a primeira cópia.
+- Registrei protocolos em branco e atendimentos de outra competência como exclusões explícitas.
+- Usei a data inicial para determinar a competência. Um atendimento encerrado no mês seguinte pode permanecer no mês em que começou.
+- Mantive avaliações inválidas fora da média e da contagem de respostas, preservando os atendimentos que atenderam aos demais critérios.
 
-## Validar e reproduzir
+## Como validei os resultados
+
+Executei os seguintes comandos:
 
 ```bash
 python scripts/verificar_codigo.py
 python scripts/verificar_etl.py
 ```
 
-O primeiro comando confere os hashes de oito arquivos preservados e roda seis testes originais. O segundo roda os testes da pipeline modular, compara os 18 campos do ranking com a referência original e gera as duas demonstrações em SQLite. Consulte o [registro da execução](resultados/VALIDACAO_ETL.md).
+Conferi os hashes dos oito arquivos de referência e executei seis testes originais. Acrescentei 27 testes para a pipeline modular, incluindo comparação dos 18 campos do ranking com o motor original, falhas de carga, rollback, reprocessamento e preservação de outras competências. Registrei os resultados em [VALIDACAO_ETL.md](resultados/VALIDACAO_ETL.md).
 
-O [workflow de CI](.github/workflows/ci.yml) executa os comandos em Linux e Windows, com Python 3.12. Os resultados e bancos demonstrativos são disponibilizados como artefatos do GitHub Actions. Os [runs](https://github.com/Pedroferreira32/pandas-support-analytics-case/actions) mostram o estado da execução remota.
+Também configurei o [GitHub Actions](.github/workflows/ci.yml) para repetir a verificação em Linux e Windows com Python 3.12 e disponibilizar os bancos e relatórios como artefatos. O estado de cada execução pode ser conferido nos [runs](https://github.com/Pedroferreira32/pandas-support-analytics-case/actions).
 
-Para executar somente os testes novos:
+Para executar somente os testes novos, o comando é:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-## O que foi implementado neste case
+## O que preservei e o que acrescentei
 
-A implementação modular em `etl/`, o contrato CSV, a quarentena de duplicados, a carga em SQLite, os controles SQL, a CLI e os testes de integração foram acrescentados neste repositório. O ranking foi reimplementado com agregações nomeadas e comparado ao resultado do motor original; não é um wrapper de `process_upload`.
+Implementei em `etl/` a extração, a classificação, o ranking, a carga SQLite e a CLI. Reutilizei os parâmetros históricos de `backend/app/pipeline/rules.py` e comparei a nova agregação com o resultado do motor original.
 
-Os parâmetros históricos de pontuação são reutilizados de `backend/app/pipeline/rules.py`. Os oito arquivos de referência em `backend/` permanecem íntegros e rastreáveis por hashes. A [documentação de evolução](docs/EVOLUCAO_PANDAS.md) explica as diferenças e a [referência anterior](docs/REFERENCIA_PANDAS.md) conserva os detalhes do primeiro recorte.
+Preservei os oito arquivos de referência em `backend/`, com seus hashes de origem. Documentei as escolhas em [EVOLUCAO_PANDAS.md](docs/EVOLUCAO_PANDAS.md) e mantive os detalhes do primeiro recorte na [referência anterior](docs/REFERENCIA_PANDAS.md).
 
-## Escopo
+## Limites e o que ainda preciso implementar
 
-Este é um ETL local de portfólio, em lote, para o contrato CSV da amostra: UTF-8, separador `;` e datas `DD/MM/AAAA HH:MM`. A carga usa uma transação por competência e mantém o resultado atual de cada mês. Os identificadores de execução e as contagens ficam registrados; não há snapshot de todas as versões anteriores dos registros.
+Construí este projeto como um **ETL local de portfólio**, em lote, com CSV fictício e SQLite. Usei um contrato explícito: UTF-8, separador `;` e datas `DD/MM/AAAA HH:MM`. A carga substitui os dados ativos da competência solicitada e mantém metadados das execuções confirmadas; não preservei snapshots completos das versões anteriores.
 
-A amostra pequena comprova comportamento e reconciliação. Não foi medido ganho de produtividade, custo ou desempenho. O TMA deste case corresponde à duração entre início e fim; não comprova tempo de trabalho ativo, FCR ou retrabalho. O fluxo não inclui agendamento, fonte remota ou infraestrutura em nuvem.
+Para operar continuamente, ainda preciso implementar:
 
-[Contrato e decisões técnicas](docs/PIPELINE.md) · [Roteiro de demonstração](docs/GUIA_DEMONSTRACAO.md) · [Origem e hashes](docs/origem_codigo.json) · [Projeto completo Performance do Suporte](https://github.com/Pedroferreira32/support-performance-analytics)
+- **Agendamento e orquestração:** execução periódica, controle de concorrência e política de novas tentativas.
+- **Carga incremental:** identificação de registros novos, alterados e removidos, com tratamento de dados que chegam atrasados.
+- **Monitoramento e alertas:** acompanhamento de falhas, duração, volumes e desvios de qualidade.
+- **Registro de tentativas que falham:** persistência independente da transação dos dados, para que o rollback não elimine a evidência da tentativa.
+- **Evolução de schema:** versionamento de contratos e migrações, com validação de compatibilidade.
+
+Validei o comportamento e a reconciliação com amostras pequenas. Não medi ganhos de produtividade, custo ou desempenho. Neste case, calculei o TMA pela diferença entre início e fim; esse valor não comprova tempo de trabalho ativo, resolução no primeiro contato ou retrabalho.
+
+[Contrato e decisões técnicas](docs/PIPELINE.md) · [Como avaliar o projeto](docs/GUIA_DEMONSTRACAO.md) · [Origem e hashes](docs/origem_codigo.json) · [Projeto completo Performance do Suporte](https://github.com/Pedroferreira32/support-performance-analytics)

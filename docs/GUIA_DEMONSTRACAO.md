@@ -1,37 +1,50 @@
-# Roteiro para demonstrar e explicar o projeto
+# Como avaliar este projeto
 
-## 1. Apresente a decisão de negócio
+Reuni aqui os critérios, os comandos e as evidências que usei para validar a pipeline principal em `etl/`. Os dados de todas as demonstrações são fictícios. O código em `backend/` foi preservado como referência histórica.
 
-Uma base de atendimentos alimenta indicadores e um ranking. Antes de agregar, é necessário definir quais registros podem participar e manter a explicação de cada exclusão. Use o caso da nota 8 fora da escala: o atendimento permanece válido, mas a avaliação sai da média.
+## 1. Problema e critérios de validade
 
-## 2. Execute a pipeline e acompanhe as etapas
+Ao estruturar o case, separei a validade do atendimento da validade de sua avaliação. Uma nota 8 em uma escala de 0 a 5 fica fora da média e da contagem de respostas; o atendimento permanece quando satisfaz os demais critérios.
 
-Na raiz, com o ambiente instalado conforme o README:
+Registrei o primeiro motivo de exclusão conforme a prioridade das regras e mantive as contagens de todas as máscaras detectadas. Assim, uma linha com várias falhas continua sendo contada apenas uma vez na base excluída.
+
+## 2. Reprodução da amostra de referência
+
+Na raiz do repositório, com o ambiente instalado conforme o README, a execução é:
 
 ```bash
 python -m etl
 ```
 
-Explique as contagens: 18 extraídos, 10 válidos, 8 excluídos, 3 atendentes e 21 linhas de dados carregadas no SQLite. O total de 21 combina tabelas de grãos diferentes e não representa 21 atendimentos.
+Na amostra de referência, obtive 18 atendimentos extraídos, 10 válidos e 8 excluídos. A transformação produziu três linhas de ranking, uma por atendente. Na carga, acompanhei separadamente as tabelas `validos`, `excluidos` e `ranking`, porque elas possuem grãos diferentes.
 
-Abra `resultados/etl/manifesto.json`, `excluidos.csv` e `ranking.csv`. A linha e os campos brutos permitem ligar o resultado à entrada. O manifesto conserva o SHA-256 da origem e os parâmetros usados.
+Em `resultados/etl/manifesto.json`, registrei o SHA-256 da origem, os parâmetros e as contagens por etapa. Em `excluidos.csv` e `ranking.csv`, preservei as saídas para inspeção. A linha de origem e os campos brutos permitem ligar cada classificação à entrada.
 
-## 3. Mostre três decisões no código
+## 3. Evidências no código
 
-1. Em `etl/validate.py`, mostre `between`/`where`, as funções que devolvem máscaras e a prioridade de motivos. Explique por que contar falhas detectadas é diferente de contar registros excluídos.
-2. Em `etl/transform.py`, mostre `groupby().agg()`, `size` versus `count` e o P90. Explique que P90 observa a cauda das durações e que esse tempo não mede trabalho ativo.
-3. Em `etl/load.py`, mostre `BEGIN IMMEDIATE`, a substituição filtrada por competência, a consulta de reconciliação e o rollback.
+| Decisão | Implementação | Evidência de verificação |
+|---|---|---|
+| Separei avaliação inválida de atendimento inválido | `between` e `where` em [validate.py](../etl/validate.py) | Nove avaliações entre dez atendimentos na amostra de referência |
+| Mantive regras independentes e uma prioridade explícita | Funções que retornam máscaras e sequência `RULES` em [validate.py](../etl/validate.py) | Testes de prioridade e contagem de falhas detectadas |
+| Diferenciei volume de cobertura de respostas | `size` e `count` em [transform.py](../etl/transform.py) | Comparação dos 18 campos do ranking com o motor original |
+| Calculei mediana e P90 das durações | Agregações e `quantile` em [transform.py](../etl/transform.py) | Equivalência numérica com a referência |
+| Protegi a substituição mensal contra falhas | `BEGIN IMMEDIATE`, SQL parametrizado e rollback em [load.py](../etl/load.py) | Testes de falha por divergência e restrição real do SQLite |
+| Conferi a carga no próprio banco | [reconciliar.sql](../sql/reconciliar.sql) antes do commit | Contagens, linhas de origem e correspondência por atendente |
 
-## 4. Reprocesse e confira no banco
+A duração entre início e fim é a medida disponível no case. Não a interpretei como tempo de trabalho ativo nem como comprovação de resolução ou retrabalho.
+
+## 4. Reprocessamento e consulta ao banco
+
+Repeti a execução e consultei a reconciliação com:
 
 ```bash
 python -m etl
 python -m etl --reconcile-only
 ```
 
-As contagens continuam iguais. A mesma entrada/configuração reutiliza o identificador; a carga não acrescenta cópias às tabelas ativas.
+Mantive as contagens e reutilizei o identificador para a mesma entrada e configuração. A carga substitui somente a competência solicitada e preserva as demais.
 
-Consulte com qualquer cliente SQLite ou com Python:
+Uma consulta reproduzível ao ranking é:
 
 ```python
 from contextlib import closing
@@ -45,31 +58,29 @@ with closing(sqlite3.connect("resultados/etl/suporte.sqlite")) as connection:
     ).fetchall())
 ```
 
-## 5. Demonstre os controles novos
+## 5. Casos adicionais de qualidade
+
+Acrescentei uma segunda amostra e a executei com:
 
 ```bash
 python -m etl --source dados/cenarios_qualidade.csv --database resultados/qualidade/suporte.sqlite --output-dir resultados/qualidade
 ```
 
-Essa amostra tem 22 entradas, 10 válidos e 12 excluídos. O protocolo V001 aparece duas vezes: ambas as cópias vão para quarentena. Há também um protocolo ausente, um registro de outra competência e uma avaliação textual. A cobertura passa a 80% porque restam oito avaliações válidas entre dez atendimentos.
+Obtive 22 entradas, 10 válidos e 12 excluídos. Coloquei as duas cópias de V001 em quarentena e auditei também um protocolo ausente e um atendimento de outra competência. Desconsiderei a avaliação textual e obtive oito avaliações válidas entre dez atendimentos, com cobertura de 80%.
 
-## 6. Execute os testes e consulte o CI
+## 6. Testes e CI
+
+Executei:
 
 ```bash
 python scripts/verificar_codigo.py
 python scripts/verificar_etl.py
 ```
 
-Mostre o teste de equivalência dos indicadores e o teste que força a reprovação da reconciliação durante a carga. Esse último confere que dados e metadados anteriores continuam no banco após o rollback.
+Conferi seis testes originais, os hashes de oito arquivos preservados e 27 testes novos. Nos testes de carga, forcei uma divergência de reconciliação e uma falha real de restrição SQLite; em ambos, verifiquei a preservação dos dados e metadados anteriores após o rollback.
 
-No GitHub Actions, confira o estado real dos jobs Linux/Windows. Os artefatos de cada run incluem os bancos demonstrativos e as evidências geradas, permitindo repetir as consultas.
+Configurei o GitHub Actions para executar a verificação em Linux e Windows. Os logs e artefatos de cada run registram o resultado remoto; `resultados/VALIDACAO_ETL.md` registra a execução que gerou o relatório versionado.
 
-## Perguntas que você deve conseguir responder
+## Escopo da avaliação
 
-- Por que uma nota inválida não elimina automaticamente o atendimento?
-- Por que `count` e `size` produzem resultados diferentes?
-- Por que colocar todas as cópias duplicadas em quarentena?
-- O que muda quando 10 atendimentos se tornam três linhas de ranking?
-- O que acontece se a carga falhar depois de apagar os dados antigos dentro da transação?
-- Como a consulta SQL detecta uma divergência no ranking?
-- O que este case comprova e quais comportamentos ainda exigiriam trabalho para operar continuamente?
+Com esse conjunto, demonstrei regras de negócio, uso de pandas, persistência transacional e validação reproduzível. Não medi desempenho em escala nem implementei operação contínua. Registrei no [README](../README.md#limites-e-o-que-ainda-preciso-implementar) as lacunas de agendamento, carga incremental, alertas, tentativas com falha e evolução de schema.
