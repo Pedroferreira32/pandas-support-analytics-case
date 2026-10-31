@@ -1,0 +1,22 @@
+$ python -m etl
+extract | entrada=18 saida=18 excluidos=0 | atendimentos
+validate | entrada=18 saida=10 excluidos=8 | atendimentos
+transform | entrada=10 saida=3 excluidos=0 | atendimentos -> atendentes
+load | validos=10 excluidos=8 ranking=3 | reconciliado=True
+{
+  "competencia": "2026-08",
+  "execucao_id": "16060f061e2707871ff242caf4bb503b7e8d473a7b0cd77895b1552ef0ea9c3f",
+  "total_extraido": 18,
+  "validos": 10,
+  "avaliacoes": 9,
+  "excluidos": 8,
+  "atendentes": 3,
+  "atendimentos_ranking": 10,
+  "avaliacoes_ranking": 9,
+  "linhas_distintas": 18,
+  "primeira_linha": 2,
+  "ultima_linha": 19,
+  "divergencias_ranking": 0,
+  "protocolos_duplicados_validos": 0,
+  "reconciliado": 1
+}

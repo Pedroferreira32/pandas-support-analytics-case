@@ -1,15 +1,26 @@
 # Pandas Support Analytics
 
+[![CI em Linux e Windows](https://github.com/Pedroferreira32/pandas-support-analytics-case/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Pedroferreira32/pandas-support-analytics-case/actions/workflows/ci.yml)
+
 **Implementei uma pipeline ETL modular em Python/pandas, com carga transacional em SQLite, reconciliação SQL e quarentena de duplicados.**
 
 A pipeline principal está em **`etl/`** e é executada com `python -m etl`. Mantive `backend/` como referência histórica para conferir a origem das regras e comparar os resultados da implementação nova.
 
-Ao analisar dados de atendimento, percebi que datas inválidas, avaliações fora da escala e registros de outros departamentos poderiam alterar os indicadores. Por isso, organizei o tratamento em etapas e preservei a explicação de cada exclusão.
+## Em 30 segundos
 
-Para demonstrar o comportamento, usei duas amostras inteiramente fictícias:
+Percebi que dados inválidos poderiam alterar a leitura dos indicadores de atendimento. Separei extração, validação, transformação e carga; registrei os motivos de exclusão e conferi as contagens em SQL antes do commit.
 
-- **Referência:** 18 entradas, 10 atendimentos válidos, 8 excluídos, 9 avaliações válidas e 90% de cobertura.
-- **Qualidade:** 22 entradas, 10 atendimentos válidos e 12 excluídos, incluindo protocolos duplicados, protocolo ausente e registros de outra competência.
+Na amostra sintética de referência, obtive **18 entradas = 10 válidos + 8 excluídos**, nove avaliações válidas e 90% de cobertura. Acrescentei uma segunda amostra com 22 entradas para exercitar as regras novas. Validei o projeto com **33 testes e CI em Linux e Windows**.
+
+Com o ambiente instalado, executei:
+
+```bash
+python -m etl
+```
+
+![Saída real da execução local de python -m etl](docs/assets/execucao-etl.png)
+
+Renderizei a imagem a partir da [saída real do comando](docs/assets/execucao-etl.txt). Ela registra contagens e reconciliação da amostra fictícia; não é uma medição de desempenho.
 
 ## O problema que procurei resolver
 
