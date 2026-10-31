@@ -1,266 +1,118 @@
 # Pandas Support Analytics
 
-Pipeline de validação e análise de atendimentos com Python e pandas.
+**Pipeline ETL local com Python, pandas e SQLite para transformar atendimentos em indicadores auditáveis.**
 
-**Case técnico do projeto Performance do Suporte**  
-Pedro Aurélio Gonçalves Ferreira · Python · pandas · Qualidade de dados · Análise operacional
+O case aplica regras de qualidade, registra cada exclusão, calcula o desempenho por atendente e carrega os resultados em banco dentro de uma transação. O reprocessamento substitui somente a competência solicitada. Todos os dados demonstrativos são fictícios.
 
-Este recorte mostra onde o pandas participa da preparação, validação e análise de atendimentos. O código principal foi extraído do repositório público do projeto e pode ser conferido por arquivo, linha e commit. A demonstração executa a função original `process_upload` com uma base inteiramente fictícia.
+Na amostra de referência: **18 entradas → 10 válidos + 8 excluídos**, com **9 avaliações válidas e 90% de cobertura**. Na amostra de qualidade: **22 entradas → 10 válidos + 12 excluídos**, exercitando também duplicados, protocolo ausente e outra competência.
 
-[Projeto completo](https://github.com/Pedroferreira32/support-performance-analytics) · [Motor pandas original](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py) · [Post para LinkedIn](docs/POST_LINKEDIN.md) · [Origem e hashes dos arquivos](docs/origem_codigo.json)
+## O problema e a decisão
 
-## O problema de negócio
+Uma exportação pode conter outros departamentos, atendentes ausentes, datas inválidas e avaliações fora da escala. O objetivo é decidir **quais atendimentos podem entrar nos indicadores e explicar o tratamento de cada registro**.
 
-Uma exportação de atendimentos pode misturar departamentos, atendentes ausentes, datas inválidas, encerramentos pendentes e avaliações fora da escala. Esses casos influenciam os indicadores usados no acompanhamento da equipe e na apuração da premiação.
+Exemplo: uma nota 8 em uma escala de 0 a 5 fica fora da média. O atendimento continua válido quando passa nas demais regras; a ausência da avaliação aparece na cobertura de respostas.
 
-A pergunta que orienta este case é: **quais registros podem entrar no cálculo e como explicar os que ficaram de fora?**
+## Executar em poucos minutos
 
-A solução mantém a linha de origem e o protocolo, aplica regras explícitas e produz bases de válidos e excluídos. Os indicadores são calculados a partir dessa seleção. O valor está em tornar as decisões de tratamento verificáveis.
-
-## Resultado reproduzível
-
-| Controle | Resultado na amostra fictícia |
-|---|---:|
-| Registros de entrada | 18 |
-| Atendimentos válidos | 10 |
-| Registros excluídos | 8 |
-| Motivos distintos de exclusão | 8 |
-| Atendentes na base válida | 3 |
-| Avaliações válidas | 9 |
-| Cobertura de avaliação | 90% |
-| Testes originais incluídos | 6 |
-
-**Reconciliação: 18 = 10 + 8.** Esses números pertencem à amostra didática; não representam produtividade real, ganho de tempo ou resultados financeiros.
-
-## O papel do pandas
-
-```mermaid
-flowchart TD
-    A["Arquivo de atendimentos"] --> B["DataFrame e padronização"]
-    B --> C["Regras e máscaras booleanas"]
-    C --> D["Atendimentos válidos"]
-    C --> E["Registros excluídos"]
-    D --> H["Agrupamentos e indicadores"]
-    D --> I["Reconciliação e auditoria"]
-    E --> I
-```
-
-| Competência demonstrada | Evidência no código |
-|---|---|
-| Leitura de Excel e tratamento inicial de ausentes | [read_table: read_excel e fillna](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L166-L176) |
-| Transformação de colunas e regras de avaliação | [_prepare: map, between e where](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L241-L247) |
-| Datas e duração | [_prepare: to_datetime e dt.total_seconds](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L241-L247) |
-| Filtros com máscaras booleanas | [process_upload: Series, loc, isna e comparações](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L461-L479) |
-| Auditoria de válidos e excluídos | [process_upload: separação e contagens](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L490-L506) |
-| KPIs por atendente | [_calculate_ranking: groupby, mean, sum e dropna](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L297-L315) |
-| Mediana e P90 | [_percentile: Series.quantile](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L266-L269) |
-
-O motor combina operações de pandas com funções Python e iterações por grupo. Os fragmentos abaixo foram extraídos do arquivo original; a remoção da indentação externa serve apenas à leitura no Markdown. A execução completa é feita pelo script de demonstração.
-
-## Trechos reais do projeto
-
-### 1. Leitura de arquivos e valores ausentes
-
-O CSV é interpretado pelo leitor de texto do projeto e convertido em DataFrame. Para Excel, o motor usa diretamente pd.read_excel. O preenchimento de ausentes faz parte da preparação inicial.
-
-[Trecho original, linhas 166–176](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L166-L176)
-
-```python
-def read_table(content: bytes, filename: str) -> pd.DataFrame:
-    extension = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-    if extension in {"csv", "txt", "tsv"}:
-        frame = _read_delimited(content)
-    elif extension in {"xlsx", "xls", "xlsm"}:
-        frame = pd.read_excel(BytesIO(content), sheet_name=0, header=None, dtype=object)
-    else:
-        raise ValueError("Formato não suportado. Envie CSV, TXT, XLSX, XLS ou XLSM.")
-    if frame.empty:
-        raise ValueError("O arquivo está vazio ou não possui linhas legíveis.")
-    return frame.fillna("")
-```
-
-### 2. Avaliações e duração dos atendimentos
-
-map aplica os parsers do projeto. where mantém apenas avaliações dentro da escala do mês. A diferença entre as datas é convertida em horas; uma avaliação inválida deixa de participar da média, sem excluir automaticamente o atendimento.
-
-[Trecho original, linhas 241–247](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L241-L247)
-
-```python
-prepared["inicioDt"] = column("inicio").map(parse_date)
-prepared["fimDt"] = column("fim").map(parse_date)
-raw_rating = column("rating").map(parse_number)
-prepared["avaliacao"] = raw_rating.where(raw_rating.between(0, config.escala_avaliacao_max), None)
-prepared["duracaoHoras"] = (
-    pd.to_datetime(prepared["fimDt"]) - pd.to_datetime(prepared["inicioDt"])
-).dt.total_seconds() / 3600
-```
-
-### 3. Máscaras booleanas e motivo de exclusão
-
-A Series reason acompanha o índice da base. A função assign só preenche linhas ainda sem motivo; assim, uma linha com mais de uma falha recebe o primeiro motivo segundo a ordem das regras.
-
-[Trecho original, linhas 461–479](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L461-L479)
-
-```python
-reason = pd.Series("", index=prepared.index, dtype=object)
-
-def assign(code: str, condition: pd.Series) -> None:
-    reason.loc[reason.eq("") & condition.fillna(False)] = code
-
-assign("FORA_SUPORTE", ~support)
-assign("SEM_ATENDENTE", attendant_normalized.isin(INVALIDOS))
-assign("ATENDENTE_EXCLUIDO", excluded_mask)
-assign("DATA_INVALIDA", prepared["inicioDt"].isna())
-assign("SEM_FINALIZACAO", prepared["fimDt"].isna())
-assign("DURACAO_NEGATIVA", prepared["duracaoHoras"].lt(0))
-if config.modo == "padrao":
-    allowed_automatic = prepared["suspeitoAutomatico"] & config.incluir_finalizados_automaticamente
-    assign("ACIMA_H", prepared["duracaoHoras"].gt(config.max_horas) & ~allowed_automatic)
-    if not config.incluir_fora_expediente:
-        start = pd.to_datetime(prepared["inicioDt"])
-        minutes = start.dt.hour * 60 + start.dt.minute
-        assign("PERIODO", start.dt.dayofweek.eq(6) | minutes.lt(480) | minutes.gt(1199))
-prepared["motivoCodigo"] = reason
-```
-
-### 4. Separação da base e contagens de auditoria
-
-loc separa válidos e excluídos. As contagens permitem reconciliar a entrada com a saída e medir quantas avaliações válidas permaneceram.
-
-[Trecho original, linhas 490–506](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L490-L506)
-
-```python
-valid_frame = prepared.loc[reason.eq("")].copy()
-excluded_frame = prepared.loc[reason.ne("")].copy()
-valid_frame["duracaoConsiderada"] = ~(
-    valid_frame["suspeitoAutomatico"] & config.neutralizar_tempo_automaticos
-)
-stats["AUTOMATICOS_VALIDOS"] = int(valid_frame["suspeitoAutomatico"].sum())
-stats["AUTOMATICOS_RECUPERADOS"] = int(
-    (valid_frame["suspeitoAutomatico"] & valid_frame["duracaoHoras"].gt(config.max_horas)).sum()
-)
-stats["VALIDOS"] = int(len(valid_frame))
-stats["EXCLUIDOS"] = int(len(excluded_frame))
-stats["REGULARES_VALIDOS"] = stats["VALIDOS"] - stats["AUTOMATICOS_VALIDOS"]
-stats["AUTOMATICOS_EXCLUIDOS"] = int(excluded_frame["suspeitoAutomatico"].sum())
-stats["AUTOMATICOS_NEUTRALIZADOS_TEMPO"] = (
-    stats["AUTOMATICOS_VALIDOS"] if config.neutralizar_tempo_automaticos else 0
-)
-stats["AVALIACOES_VALIDAS"] = int(valid_frame["avaliacao"].notna().sum())
-```
-
-### 5. Agrupamento e indicadores por atendente
-
-groupby organiza os registros por atendente. O cálculo usa soma, média, exclusão de nulos e percentis para gerar volume, tempo, avaliação e cobertura. Este é um fragmento do corpo de _calculate_ranking.
-
-[Trecho original, linhas 297–315](https://github.com/Pedroferreira32/support-performance-analytics/blob/1c06e62c70b9e2d71908381728f9875a5b7c4dc3/backend/app/pipeline/engine.py#L297-L315)
-
-```python
-for attendant, group in valid.groupby("atendente", sort=False):
-    timed = group.loc[group["duracaoConsiderada"]]
-    ratings = group["avaliacao"].dropna().astype(float).tolist()
-    tmas = timed["tmaMinutos"].astype(float).tolist()
-    base.append(
-        {
-            "id": _slug(str(attendant)),
-            "atendente": str(attendant),
-            "atendimentos": int(len(group)),
-            "tmaMedioMin": float(pd.Series(tmas).mean()) if tmas else None,
-            "tmaMedianoMin": _percentile(tmas, 0.5),
-            "tmaP90Min": _percentile(tmas, 0.9),
-            "horasTotal": float(timed["duracaoHoras"].sum()) if not timed.empty else 0.0,
-            "avaliacaoMedia": float(pd.Series(ratings).mean()) if ratings else None,
-            "avaliacoes": len(ratings),
-            "coberturaAvaliacao": len(ratings) / len(group) * 100 if len(group) else 0.0,
-            "automaticos": int(group["suspeitoAutomatico"].sum()),
-        }
-    )
-```
-
-
-## Como executar
-
-Requisito: Python 3.12. Clone o repositório e entre na pasta do projeto:
-
-```bash
-git clone https://github.com/Pedroferreira32/pandas-support-analytics-case.git
-cd pandas-support-analytics-case
-```
-
-A demonstração usa somente arquivos locais. Crie um ambiente virtual:
+Requisito: **Python 3.12**. Na raiz do repositório:
 
 ```bash
 python -m venv .venv
 ```
 
-Ative o ambiente no Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Ou no Linux/macOS:
+Linux/macOS:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Depois, instale as dependências e execute:
+Instale as dependências e execute:
 
 ```bash
 python -m pip install -r requirements.txt
-python scripts/demo_pandas.py
-python scripts/verificar_codigo.py
+python -m etl
+python -m etl --reconcile-only
 ```
 
-O primeiro script chama `process_upload`, confere a amostra e exporta o ranking, os válidos, os excluídos e o resultado em JSON. O segundo confere os hashes dos oito arquivos de origem e executa os seis testes de pipeline extraídos do projeto. Ele usa unittest para executar as funções originais, sem exigir pytest.
+Saída da primeira execução:
 
-## O que conferir na demonstração
+```text
+extract   entrada=18  saida=18  excluidos=0  (atendimentos)
+validate  entrada=18  saida=10  excluidos=8  (atendimentos)
+transform entrada=10  saida=3               (atendimentos -> atendentes)
+load      linhas persistidas=21            (10 válidos + 8 excluídos + 3 rankings)
+reconciliado=1
+```
 
-1. **E001 tem duas falhas:** pertence ao Financeiro e está sem atendente. Recebe somente FORA_SUPORTE, o primeiro motivo aplicável. Isso evita dupla contagem de exclusões; não representa deduplicação de protocolos.
-2. **V004 atravessa o mês:** inicia em 31/08 e termina em 01/09. Continua na competência de agosto, conforme a data de início.
-3. **V006 contém uma transferência:** a fila inicial é Comercial, mas o campo de transferência contém Suporte; o atendimento é aceito.
-4. **V007 tem nota 8 numa escala de 0 a 5:** o atendimento permanece válido e sua avaliação fica ausente no cálculo. A cobertura considera 9 avaliações entre 10 atendimentos.
-5. **A premiação segue regras explícitas:** os pesos, a meta e o limite de duração estão em [rules.py](backend/app/pipeline/rules.py). São os parâmetros da versão pública exportada.
+O banco fica em `resultados/etl/suporte.sqlite`. CSVs, manifesto com hash da entrada e [resumo da execução](resultados/etl/RESUMO.md) ficam na mesma pasta. O banco é gerado localmente e não é versionado.
 
-As regras após junho/2026, utilizadas aqui, têm limite de 9 horas, avaliações de 0 a 5 e pontuação total de 100. A elegibilidade começa em 85 pontos; no máximo três elegíveis são premiados. Esses parâmetros podem ser conferidos no arquivo de regras e nos testes.
+## Etapas e evidências
 
-## Arquivos para revisar
+```mermaid
+flowchart TD
+    A["CSV fictício"] --> B["Extract: schema e origem"]
+    B --> C["Validate: regras e classificação"]
+    C --> D["Atendimentos válidos"]
+    C --> E["Exclusões com motivo"]
+    D --> F["Transform: indicadores e ranking"]
+    D --> G["Load: transação SQLite"]
+    E --> G
+    F --> G
+    G --> H["Reconciliação SQL antes do commit"]
+```
 
-| Arquivo | Conteúdo |
+| Competência demonstrada | Onde conferir |
 |---|---|
-| [engine.py](backend/app/pipeline/engine.py) | Motor original com pandas, copiado integralmente |
-| [rules.py](backend/app/pipeline/rules.py) | Configuração original das regras por competência |
-| [test_pipeline.py](backend/tests/test_pipeline.py) | Seis testes de pipeline do projeto original |
-| [atendimentos_ficticios.csv](dados/atendimentos_ficticios.csv) | Amostra criada para este case, com 18 registros |
-| [demo_pandas.py](scripts/demo_pandas.py) | Execução didática que chama o motor original |
-| [verificar_codigo.py](scripts/verificar_codigo.py) | Conferência de integridade e execução dos testes |
-| [resultado.json](resultados/resultado.json) | Saída da pipeline para a amostra |
-| [ranking.csv](resultados/ranking.csv) | Indicadores e pontuação por atendente fictício |
-| [excluidos.csv](resultados/excluidos.csv) | Motivos, protocolos e linhas de origem |
-| [RESUMO.md](resultados/RESUMO.md) | Resumo gerado da execução |
-| [POST_LINKEDIN.md](docs/POST_LINKEDIN.md) | Texto pronto para a publicação |
+| Contrato de entrada, preservação de identificadores e SHA-256 | [extract.py](etl/extract.py) |
+| Uma função por regra, máscaras booleanas e auditoria | [validate.py](etl/validate.py) |
+| `groupby().agg()`, quantis e pontuação vetorizada | [transform.py](etl/transform.py) |
+| Carga parametrizada, rollback e substituição mensal | [load.py](etl/load.py) |
+| Contagens e execução das etapas | [pipeline.py](etl/pipeline.py) |
+| Reconciliação diretamente no banco | [reconciliar.sql](sql/reconciliar.sql) |
+| Testes de negócio, equivalência, reprocessamento e falhas | [test_etl.py](tests/test_etl.py) |
 
-## Validação e limites do recorte
+### Regras de qualidade
 
-Os seis testes originais verificam a regra histórica de 100 pontos, a competência pela data inicial, a preservação da identidade fictícia do cliente, o tratamento de encerramentos automáticos, o limite de três premiados e a auditoria de exclusões e avaliações inválidas.
+- Cabeçalhos ausentes, extras ou duplicados e linhas com quantidade incorreta de campos bloqueiam o arquivo antes da carga.
+- Cada atendimento recebe um único motivo principal, conforme a prioridade documentada.
+- Protocolos repetidos, após remoção de espaços externos e comparação sem distinção de maiúsculas, ficam **todos em quarentena na mesma competência inicial**. Nenhuma cópia é escolhida arbitrariamente.
+- Protocolo em branco e registros de outra competência são auditados como exclusões, sem desaparecimento silencioso de linhas.
+- A competência vem do início: um atendimento encerrado no mês seguinte pode permanecer no mês inicial.
+- A avaliação inválida fica ausente na média e na contagem de respostas; não elimina automaticamente o atendimento.
 
-As verificações adicionais da amostra conferem a reconciliação, o motivo único por exclusão, a avaliação fora da escala, a transferência para Suporte e o atendimento encerrado no mês seguinte. Consulte o [registro da execução](resultados/VALIDACAO.md).
+## Validar e reproduzir
 
-O recorte cobre a pipeline Python. API, persistência, frontend e implantação pertencem ao projeto completo. O TMA expressa duração e precisa ser interpretado com avaliação, cobertura e contexto operacional; isoladamente não comprova qualidade, resolução no primeiro contato ou retrabalho. Não foi medido ganho percentual de produtividade neste material.
+```bash
+python scripts/verificar_codigo.py
+python scripts/verificar_etl.py
+```
 
-## Rastreabilidade
+O primeiro comando confere os hashes de oito arquivos preservados e roda seis testes originais. O segundo roda os testes da pipeline modular, compara os 18 campos do ranking com a referência original e gera as duas demonstrações em SQLite. Consulte o [registro da execução](resultados/VALIDACAO_ETL.md).
 
-- Repositório de origem: [https://github.com/Pedroferreira32/support-performance-analytics](https://github.com/Pedroferreira32/support-performance-analytics).
-- Commit exportado: [`1c06e62c70b9e2d71908381728f9875a5b7c4dc3`](https://github.com/Pedroferreira32/support-performance-analytics/commit/1c06e62c70b9e2d71908381728f9875a5b7c4dc3).
-- Data da exportação: 25/10/2026.
-- Os oito arquivos registrados em [origem_codigo.json](docs/origem_codigo.json) mantêm os bytes e os hashes de origem.
-- A amostra, os scripts de demonstração, a documentação e os relatórios foram criados para apresentar esse código.
+O [workflow de CI](.github/workflows/ci.yml) executa os comandos em Linux e Windows, com Python 3.12. Os resultados e bancos demonstrativos são disponibilizados como artefatos do GitHub Actions. Os [runs](https://github.com/Pedroferreira32/pandas-support-analytics-case/actions) mostram o estado da execução remota.
 
-O campo processadoEm é retirado apenas do JSON didático exportado para evitar diferenças de horário entre execuções. O motor original permanece intacto.
+Para executar somente os testes novos:
 
-## Relação com o projeto original
+```bash
+python -m unittest discover -s tests -v
+```
 
-Este repositório apresenta a camada Python/pandas do Performance do Suporte como um case técnico executável. A documentação liga cada trecho ao commit de origem; os scripts e a amostra sintética permitem revisar o tratamento dos dados de forma independente.
+## O que foi implementado neste case
 
-O projeto completo, com API, banco e dashboard, permanece em [support-performance-analytics](https://github.com/Pedroferreira32/support-performance-analytics).
+A implementação modular em `etl/`, o contrato CSV, a quarentena de duplicados, a carga em SQLite, os controles SQL, a CLI e os testes de integração foram acrescentados neste repositório. O ranking foi reimplementado com agregações nomeadas e comparado ao resultado do motor original; não é um wrapper de `process_upload`.
+
+Os parâmetros históricos de pontuação são reutilizados de `backend/app/pipeline/rules.py`. Os oito arquivos de referência em `backend/` permanecem íntegros e rastreáveis por hashes. A [documentação de evolução](docs/EVOLUCAO_PANDAS.md) explica as diferenças e a [referência anterior](docs/REFERENCIA_PANDAS.md) conserva os detalhes do primeiro recorte.
+
+## Escopo
+
+Este é um ETL local de portfólio, em lote, para o contrato CSV da amostra: UTF-8, separador `;` e datas `DD/MM/AAAA HH:MM`. A carga usa uma transação por competência e mantém o resultado atual de cada mês. Os identificadores de execução e as contagens ficam registrados; não há snapshot de todas as versões anteriores dos registros.
+
+A amostra pequena comprova comportamento e reconciliação. Não foi medido ganho de produtividade, custo ou desempenho. O TMA deste case corresponde à duração entre início e fim; não comprova tempo de trabalho ativo, FCR ou retrabalho. O fluxo não inclui agendamento, fonte remota ou infraestrutura em nuvem.
+
+[Contrato e decisões técnicas](docs/PIPELINE.md) · [Roteiro de demonstração](docs/GUIA_DEMONSTRACAO.md) · [Origem e hashes](docs/origem_codigo.json) · [Projeto completo Performance do Suporte](https://github.com/Pedroferreira32/support-performance-analytics)
