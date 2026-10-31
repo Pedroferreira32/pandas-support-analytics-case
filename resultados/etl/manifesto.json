@@ -1,0 +1,140 @@
+{
+  "execucao_id": "16060f061e2707871ff242caf4bb503b7e8d473a7b0cd77895b1552ef0ea9c3f",
+  "competencia": "2026-08",
+  "origem": "atendimentos_ficticios.csv",
+  "origem_sha256": "ddd2907a7dc5de54b4830ac98cede43d39978769551d697fb758095c80131891",
+  "configuracao": {
+    "pipeline_version": "1",
+    "competencia": "2026-08",
+    "excluded_attendants": [
+      "Diego Demo"
+    ],
+    "business_start": "08:00:00",
+    "business_end_exclusive": "20:00:00",
+    "allowed_weekdays": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "max_awards": 3,
+    "duplicate_policy": "quarantine_all_within_start_month",
+    "rules": {
+      "competencia": "2026-08",
+      "perfil_regra": "Novo modelo oficial — 100 pontos com Tempo e TMA separados",
+      "modo": "padrao",
+      "max_horas": 9,
+      "escala_avaliacao_max": 5,
+      "peso_quantidade": 20,
+      "peso_tempo": 10,
+      "peso_tma": 30,
+      "peso_avaliacao": 40,
+      "incluir_fora_expediente": false,
+      "incluir_finalizados_automaticamente": false,
+      "neutralizar_tempo_automaticos": false,
+      "pontuacao_tempo_tma_fixa": false,
+      "nota_minima": 85.0,
+      "hora_inicio": "08:00",
+      "hora_fim": "19:59",
+      "teto_pontuacao": 100.0
+    }
+  },
+  "total_extraido": 18,
+  "etapas": [
+    {
+      "etapa": "extract",
+      "entrada": 18,
+      "saida": 18,
+      "excluidos": 0,
+      "unidade": "atendimentos"
+    },
+    {
+      "etapa": "validate",
+      "entrada": 18,
+      "saida": 10,
+      "excluidos": 8,
+      "unidade": "atendimentos"
+    },
+    {
+      "etapa": "transform",
+      "entrada": 10,
+      "saida": 3,
+      "excluidos": 0,
+      "unidade": "atendimentos -> atendentes"
+    },
+    {
+      "etapa": "load",
+      "entrada": 21,
+      "saida": 21,
+      "excluidos": 0,
+      "unidade": "linhas: validos + excluidos + ranking"
+    }
+  ],
+  "regras": {
+    "FORA_SUPORTE": {
+      "detectados": 1,
+      "motivo_principal": 1
+    },
+    "SEM_ATENDENTE": {
+      "detectados": 2,
+      "motivo_principal": 1
+    },
+    "ATENDENTE_EXCLUIDO": {
+      "detectados": 1,
+      "motivo_principal": 1
+    },
+    "DATA_INVALIDA": {
+      "detectados": 1,
+      "motivo_principal": 1
+    },
+    "SEM_FINALIZACAO": {
+      "detectados": 1,
+      "motivo_principal": 1
+    },
+    "DURACAO_NEGATIVA": {
+      "detectados": 1,
+      "motivo_principal": 1
+    },
+    "ACIMA_H": {
+      "detectados": 1,
+      "motivo_principal": 1
+    },
+    "PERIODO": {
+      "detectados": 2,
+      "motivo_principal": 1
+    },
+    "FORA_COMPETENCIA": {
+      "detectados": 0,
+      "motivo_principal": 0
+    },
+    "SEM_PROTOCOLO": {
+      "detectados": 0,
+      "motivo_principal": 0
+    },
+    "PROTOCOLO_DUPLICADO": {
+      "detectados": 0,
+      "motivo_principal": 0
+    }
+  },
+  "reconciliacao_sql": {
+    "competencia": "2026-08",
+    "execucao_id": "16060f061e2707871ff242caf4bb503b7e8d473a7b0cd77895b1552ef0ea9c3f",
+    "total_extraido": 18,
+    "validos": 10,
+    "avaliacoes": 9,
+    "excluidos": 8,
+    "atendentes": 3,
+    "atendimentos_ranking": 10,
+    "avaliacoes_ranking": 9,
+    "linhas_distintas": 18,
+    "primeira_linha": 2,
+    "ultima_linha": 19,
+    "divergencias_ranking": 0,
+    "protocolos_duplicados_validos": 0,
+    "reconciliado": 1
+  },
+  "avaliacoes_validas": 9,
+  "cobertura_avaliacao": 90.0
+}
