@@ -1,0 +1,50 @@
+{
+  "tipo": "referencia_local_pandas",
+  "executado_no_bigquery": false,
+  "amostra": "dados/atendimentos_ficticios.csv",
+  "amostra_sha256": "ddd2907a7dc5de54b4830ac98cede43d39978769551d697fb758095c80131891",
+  "competencia": "2026-08",
+  "total_importado": 18,
+  "validos": 10,
+  "excluidos": 8,
+  "avaliacoes_validas": 9,
+  "cobertura_avaliacao": 90.0,
+  "ranking_esperado": [
+    {
+      "atendente": "Carla Demo",
+      "atendimentos": 3,
+      "horas_total": 1.5,
+      "tma_medio_min": 30.0,
+      "tma_mediano_min": 30.0,
+      "tma_p90_min": 38.0,
+      "avaliacao_media": 4.666666666666667,
+      "avaliacoes": 3,
+      "cobertura_avaliacao": 100.0,
+      "nota_final": 86.52046783625731
+    },
+    {
+      "atendente": "Ana Demo",
+      "atendimentos": 4,
+      "horas_total": 6.75,
+      "tma_medio_min": 101.25,
+      "tma_mediano_min": 52.5,
+      "tma_p90_min": 207.00000000000003,
+      "avaliacao_media": 4.75,
+      "avaliacoes": 4,
+      "cobertura_avaliacao": 100.0,
+      "nota_final": 78.88888888888889
+    },
+    {
+      "atendente": "Bruno Demo",
+      "atendimentos": 3,
+      "horas_total": 2.25,
+      "tma_medio_min": 45.0,
+      "tma_mediano_min": 45.0,
+      "tma_p90_min": 57.0,
+      "avaliacao_media": 4.5,
+      "avaliacoes": 2,
+      "cobertura_avaliacao": 66.66666666666666,
+      "nota_final": 76.22807017543859
+    }
+  ]
+}

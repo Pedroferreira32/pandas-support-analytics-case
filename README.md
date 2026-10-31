@@ -130,3 +130,7 @@ Para operar continuamente, ainda preciso implementar:
 Validei o comportamento e a reconciliação com amostras pequenas. Não medi ganhos de produtividade, custo ou desempenho. Neste case, calculei o TMA pela diferença entre início e fim; esse valor não comprova tempo de trabalho ativo, resolução no primeiro contato ou retrabalho.
 
 [Contrato e decisões técnicas](docs/PIPELINE.md) · [Como avaliar o projeto](docs/GUIA_DEMONSTRACAO.md) · [Origem e hashes](docs/origem_codigo.json) · [Projeto completo Performance do Suporte](https://github.com/Pedroferreira32/support-performance-analytics)
+
+## Evolução em preparação: BigQuery
+
+Preparei um [módulo GoogleSQL](bigquery/README.md) com a mesma amostra fictícia de referência. Ainda preciso executar as consultas no BigQuery e coletar os IDs dos jobs e os resultados reais. Esta etapa usa a referência histórica de 18 registros e permanece separada da pipeline local principal em `etl/`.
