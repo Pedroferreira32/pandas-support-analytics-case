@@ -4,6 +4,12 @@
 
 Este módulo leva a mesma amostra fictícia do projeto Python/pandas para GoogleSQL. A meta é construir uma evidência verificável de BigQuery: SQL versionado, tabelas criadas na plataforma, indicadores reconciliados com pandas e IDs dos jobs executados.
 
+## Relação com a pipeline principal
+
+A pipeline local principal está em [`etl/`](../etl/), com carga transacional em SQLite, schema explícito e quarentena de duplicados. Preservei este módulo como uma evolução em preparação sobre a amostra histórica de 18 registros e o motor original em `backend/`.
+
+Ainda não portei para GoogleSQL as novas regras de protocolo ausente, quarentena de duplicados e o contrato de schema da pipeline modular. A equivalência SQL planejada neste módulo é com o recorte histórico documentado; não representa equivalência completa com todas as regras novas. A referência de 18 registros permanece igual nas duas implementações Python, conforme os testes da pipeline principal.
+
 ## O que este case permite demonstrar
 
 | Etapa | Código | Competência |

@@ -1,0 +1,9 @@
+﻿linha_origem;protocolo;cliente;revenda;atendente;inicio_raw;fim_raw;setores;transferencias;avaliacao_raw;protocolo_raw;atendente_raw;protocolo_chave;atendente_normalizado;inicio;fim;competencia_registro;duracao_horas;tma_minutos;avaliacao;protocolo_duplicado;suspeito_automatico;motivo_codigo
+12;E001;Cliente Fictício 10;Canal Exemplo A;;10/08/2026 09:00;10/08/2026 10:00;Financeiro;;5;E001;;e001;;2026-08-10 09:00:00;2026-08-10 10:00:00;2026-08;1;60;5;False;False;FORA_SUPORTE
+13;E002;Cliente Fictício 11;Canal Exemplo A;;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5;E002;;e002;;2026-08-10 09:00:00;2026-08-10 10:00:00;2026-08;1;60;5;False;False;SEM_ATENDENTE
+14;E003;Cliente Fictício 12;Canal Exemplo A;Diego Demo;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5;E003;Diego Demo;e003;DIEGO DEMO;2026-08-10 09:00:00;2026-08-10 10:00:00;2026-08;1;60;5;False;False;ATENDENTE_EXCLUIDO
+15;E004;Cliente Fictício 13;Canal Exemplo B;Ana Demo;Pendente;10/08/2026 10:00;Suporte;;5;E004;Ana Demo;e004;ANA DEMO;;2026-08-10 10:00:00;;;;5;False;False;DATA_INVALIDA
+16;E005;Cliente Fictício 14;Canal Exemplo B;Ana Demo;10/08/2026 09:00;;Suporte;;5;E005;Ana Demo;e005;ANA DEMO;2026-08-10 09:00:00;;2026-08;;;5;False;False;SEM_FINALIZACAO
+17;E006;Cliente Fictício 15;Canal Exemplo B;Bruno Demo;10/08/2026 10:00;10/08/2026 09:00;Suporte;;5;E006;Bruno Demo;e006;BRUNO DEMO;2026-08-10 10:00:00;2026-08-10 09:00:00;2026-08;-1;-60;5;False;False;DURACAO_NEGATIVA
+18;E007;Cliente Fictício 16;Canal Exemplo A;Bruno Demo;10/08/2026 09:00;10/08/2026 19:00;Suporte;;5;E007;Bruno Demo;e007;BRUNO DEMO;2026-08-10 09:00:00;2026-08-10 19:00:00;2026-08;10;600;5;False;False;ACIMA_H
+19;E008;Cliente Fictício 17;Canal Exemplo B;Carla Demo;09/08/2026 09:00;09/08/2026 10:00;Suporte;;5;E008;Carla Demo;e008;CARLA DEMO;2026-08-09 09:00:00;2026-08-09 10:00:00;2026-08;1;60;5;False;False;PERIODO

@@ -1,0 +1,43 @@
+name: Python pandas ETL
+
+on:
+  push:
+    branches: [main, feat/pandas-etl-sqlite]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Python 3.12 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify original files and original tests
+        run: python scripts/verificar_codigo.py
+      - name: Verify modular pipeline and generate evidence
+        run: python scripts/verificar_etl.py
+      - name: Upload reproducible demonstration outputs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence-${{ matrix.os }}
+          path: |
+            resultados/VALIDACAO_ETL.md
+            resultados/etl/
+            resultados/qualidade/
+          retention-days: 14
