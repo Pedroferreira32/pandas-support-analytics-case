@@ -1,0 +1,23 @@
+﻿Protocolo;Contact ID;Revenda;User ID;Iniciado;Fim;Setores;Setores Transfers;Rating
+V001;Cliente Fictício 01;Canal Exemplo A;Ana Demo;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5
+V002;Cliente Fictício 02;Canal Exemplo A;Ana Demo;11/08/2026 10:00;11/08/2026 10:30;Suporte;;4
+V003;Cliente Fictício 03;Canal Exemplo B;Ana Demo;12/08/2026 11:00;12/08/2026 11:45;Suporte;;5
+V004;Cliente Fictício 01;Canal Exemplo A;Ana Demo;31/08/2026 19:30;01/09/2026 00:00;Suporte;;5
+V005;Cliente Fictício 04;Canal Exemplo B;Bruno Demo;10/08/2026 09:00;10/08/2026 09:30;Suporte;;4
+V006;Cliente Fictício 05;Canal Exemplo B;Bruno Demo;11/08/2026 10:00;11/08/2026 11:00;Comercial;Suporte;5
+V007;Cliente Fictício 06;Canal Exemplo A;Bruno Demo;12/08/2026 11:00;12/08/2026 11:45;Suporte;;8
+V008;Cliente Fictício 07;Canal Exemplo A;Carla Demo;10/08/2026 09:00;10/08/2026 09:20;Suporte;;5
+V009;Cliente Fictício 08;Canal Exemplo B;Carla Demo;11/08/2026 10:00;11/08/2026 10:40;Suporte;;5
+V010;Cliente Fictício 09;Canal Exemplo B;Carla Demo;12/08/2026 11:00;12/08/2026 11:30;Suporte;;4
+E001;Cliente Fictício 10;Canal Exemplo A;;10/08/2026 09:00;10/08/2026 10:00;Financeiro;;5
+E002;Cliente Fictício 11;Canal Exemplo A;;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5
+E003;Cliente Fictício 12;Canal Exemplo A;Diego Demo;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5
+E004;Cliente Fictício 13;Canal Exemplo B;Ana Demo;Pendente;10/08/2026 10:00;Suporte;;5
+E005;Cliente Fictício 14;Canal Exemplo B;Ana Demo;10/08/2026 09:00;;Suporte;;5
+E006;Cliente Fictício 15;Canal Exemplo B;Bruno Demo;10/08/2026 10:00;10/08/2026 09:00;Suporte;;5
+E007;Cliente Fictício 16;Canal Exemplo A;Bruno Demo;10/08/2026 09:00;10/08/2026 19:00;Suporte;;5
+E008;Cliente Fictício 17;Canal Exemplo B;Carla Demo;09/08/2026 09:00;09/08/2026 10:00;Suporte;;5
+V001;Cliente Fictício 01;Canal Exemplo A;Ana Demo;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5
+;Cliente Fictício 01;Canal Exemplo A;Ana Demo;10/08/2026 09:00;10/08/2026 10:00;Suporte;;5
+MES001;Cliente Fictício 01;Canal Exemplo A;Ana Demo;10/07/2026 09:00;10/07/2026 10:00;Suporte;;5
+V011;Cliente Fictício 01;Canal Exemplo A;Ana Demo;10/08/2026 09:00;10/08/2026 10:00;Suporte;;texto
